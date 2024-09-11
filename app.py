@@ -3,13 +3,14 @@ import pandas as pd
 import psycopg2
 from sqlalchemy import create_engine
 import plotly.express as px  # Adicione esta linha
+import os
 
 # Configurações de conexão com o banco de dados
-DB_HOST = "localhost"
-DB_NAME = "postgres"
-DB_USER = "postgres"
-DB_PASS = "9vk1aplp"
-DB_PORT = "5432"
+DB_HOST = os.getenv("DB_HOST")
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASS = os.getenv("DB_PASS")
+DB_PORT = os.getenv("DB_PORT")
 
 # Funções de banco de dados (sem alterações)
 def criar_conexao():
