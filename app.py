@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import psycopg2
 from sqlalchemy import create_engine
+import plotly.express as px  # Adicione esta linha
 
 # Configurações de conexão com o banco de dados
 DB_HOST = "localhost"
@@ -91,6 +92,13 @@ def recuperar_dados(conn):
     """
     return pd.read_sql_query(query, conn)
 
+def publicacoes_por_ano(df):
+    contagem_por_ano = df['Year'].value_counts().sort_index()
+    fig = px.bar(x=contagem_por_ano.index, y=contagem_por_ano.values,
+                 labels={'x': 'Ano', 'y': 'Número de Publicações'},
+                 title='Publicações por Ano')
+    st.plotly_chart(fig)
+
 def main():
     st.title("Análise Bibliométrica")
     
@@ -113,6 +121,10 @@ def main():
             
             st.write(f"Total de registros: {len(df)}")
             st.write(f"Colunas disponíveis: {', '.join(df.columns)}")
+            
+            # Adicione o botão aqui
+            if st.button("Publicações por Ano"):
+                publicacoes_por_ano(df)
             
         except Exception as e:
             st.error(f"Erro ao processar o arquivo: {str(e)}")
