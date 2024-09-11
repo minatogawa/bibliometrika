@@ -11,6 +11,7 @@ DB_USER = "postgres"
 DB_PASS = "9vk1aplp"
 DB_PORT = "5432"
 
+# Funções de banco de dados (sem alterações)
 def criar_conexao():
     try:
         conn = psycopg2.connect(
@@ -87,16 +88,31 @@ def inserir_dados(engine, df):
 
 def recuperar_dados(conn):
     query = """
-    SELECT "Authors", "Title", "DOI", "Year" 
+    SELECT "Authors", "Title", "DOI", "Year", "Source title" 
     FROM dados_bibliometricos
     """
     return pd.read_sql_query(query, conn)
 
+# Funções para gerar gráficos
 def publicacoes_por_ano(df):
     contagem_por_ano = df['Year'].value_counts().sort_index()
     fig = px.bar(x=contagem_por_ano.index, y=contagem_por_ano.values,
                  labels={'x': 'Ano', 'y': 'Número de Publicações'},
                  title='Publicações por Ano')
+    st.plotly_chart(fig)
+
+def autores_mais_publicados(df):
+    autores = df['Authors'].str.split(', ', expand=True).stack()
+    contagem_autores = autores.value_counts().head(10)
+    fig = px.bar(x=contagem_autores.index, y=contagem_autores.values,
+                 labels={'x': 'Autor', 'y': 'Número de Publicações'},
+                 title='Top 10 Autores Mais Publicados')
+    st.plotly_chart(fig)
+
+def fontes_mais_comuns(df):
+    contagem_fontes = df['Source title'].value_counts().head(10)
+    fig = px.pie(values=contagem_fontes.values, names=contagem_fontes.index,
+                 title='Top 10 Fontes Mais Comuns')
     st.plotly_chart(fig)
 
 def main():
@@ -116,15 +132,33 @@ def main():
             inserir_dados(engine, df_completo)
             
             df = recuperar_dados(conn)
-            st.write("Dados recuperados do PostgreSQL:")
-            st.write(df)
             
-            st.write(f"Total de registros: {len(df)}")
-            st.write(f"Colunas disponíveis: {', '.join(df.columns)}")
+            st.sidebar.title("Opções de Visualização")
             
-            # Adicione o botão aqui
-            if st.button("Publicações por Ano"):
-                publicacoes_por_ano(df)
+            # Menu de opções no sidebar
+            opcao = st.sidebar.radio(
+                "Escolha uma visualização:",
+                ("Dados Brutos", "Gráficos")
+            )
+            
+            if opcao == "Dados Brutos":
+                st.write("Dados recuperados do PostgreSQL:")
+                st.write(df)
+                st.write(f"Total de registros: {len(df)}")
+                st.write(f"Colunas disponíveis: {', '.join(df.columns)}")
+            
+            elif opcao == "Gráficos":
+                tipo_grafico = st.sidebar.selectbox(
+                    "Escolha um tipo de gráfico:",
+                    ("Publicações por Ano", "Autores Mais Publicados", "Fontes Mais Comuns")
+                )
+                
+                if tipo_grafico == "Publicações por Ano":
+                    publicacoes_por_ano(df)
+                elif tipo_grafico == "Autores Mais Publicados":
+                    autores_mais_publicados(df)
+                elif tipo_grafico == "Fontes Mais Comuns":
+                    fontes_mais_comuns(df)
             
         except Exception as e:
             st.error(f"Erro ao processar o arquivo: {str(e)}")
