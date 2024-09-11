@@ -6,11 +6,11 @@ import plotly.express as px  # Adicione esta linha
 import os
 
 # Configurações de conexão com o banco de dados
-DB_HOST = os.getenv("DB_HOST")
-DB_NAME = os.getenv("DB_NAME")
-DB_USER = os.getenv("DB_USER")
-DB_PASS = os.getenv("DB_PASS")
-DB_PORT = os.getenv("DB_PORT")
+DB_HOST = os.getenv("DB_HOST", "aws-0-us-east-1.pooler.supabase.com")
+DB_NAME = os.getenv("DB_NAME", "postgres")
+DB_USER = os.getenv("DB_USER", "postgres.nocrpazlhqprhxuoykfz")
+DB_PASS = os.getenv("DB_PASS", "sua_senha_aqui")  # Substitua pela senha real ou use variável de ambiente
+DB_PORT = os.getenv("DB_PORT", "6543")
 
 # Funções de banco de dados (sem alterações)
 def criar_conexao():
@@ -20,9 +20,10 @@ def criar_conexao():
             database=DB_NAME,
             user=DB_USER,
             password=DB_PASS,
-            port=DB_PORT
+            port=DB_PORT,
+            sslmode='require'
         )
-        engine = create_engine(f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}')
+        engine = create_engine(f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode=require')
         return conn, engine
     except Exception as e:
         st.error(f"Erro ao conectar ao banco de dados: {str(e)}")
